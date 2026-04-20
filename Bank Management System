@@ -1,0 +1,145 @@
+import java.io.*;
+import java.util.*;
+public class BankManagementSystem {
+    static class Account implements Serializable {
+        int accNo;
+        String name;
+        double balance;
+        ArrayList<String> history = new ArrayList<>();
+        Account(int accNo, String name, double balance) {
+            this.accNo = accNo;
+            this.name = name;
+            this.balance = balance;
+            history.add("Account created with balance: " + balance);
+        }
+        void deposit(double amount) {
+            balance += amount;
+            history.add("Deposited: " + amount);
+        }
+        void withdraw(double amount) {
+            if (amount > balance) {
+                throw new ArithmeticException("Insufficient Balance");
+            }
+            balance -= amount;
+            history.add("Withdrawn: " + amount);
+        }
+        void showDetails() {
+            System.out.println("Account No: " + accNo);
+            System.out.println("Name: " + name);
+            System.out.println("Balance: " + balance);
+        }
+        void showHistory() {
+            for (String h : history) {
+                System.out.println(h);
+            }
+        }
+    }
+    static HashMap<Integer, Account> accounts = new HashMap<>();
+    static final String FILE_NAME = "bank.dat";
+    static void saveData() {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME));
+            oos.writeObject(accounts);
+            oos.close();
+        } catch (Exception e) {
+            System.out.println("Error saving data");
+        }
+    }
+    @SuppressWarnings("unchecked")
+    static void loadData() {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME));
+            accounts = (HashMap<Integer, Account>) ois.readObject();
+            ois.close();
+        } catch (Exception e) {
+            accounts = new HashMap<>();
+        }
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        loadData();
+        while (true) {
+            System.out.println("\n--- Bank Management System ---");
+            System.out.println("1. Create Account");
+            System.out.println("2. Deposit");
+            System.out.println("3. Withdraw");
+            System.out.println("4. Balance Check");
+            System.out.println("5. Transaction History");
+            System.out.println("6. Exit");
+            System.out.print("Enter choice: ");
+            int choice = sc.nextInt();
+            try {
+                switch (choice) {
+                    case 1:
+                        System.out.print("Enter Account No: ");
+                        int accNo = sc.nextInt();
+                        sc.nextLine();
+                        if (accounts.containsKey(accNo)) {
+                            System.out.println("Account already exists!");
+                            break;
+                        }
+                        System.out.print("Enter Name: ");
+                        String name = sc.nextLine();
+                        System.out.print("Enter Initial Balance: ");
+                        double bal = sc.nextDouble();
+                        Account acc = new Account(accNo, name, bal);
+                        accounts.put(accNo, acc);
+                        saveData();
+                        System.out.println("Account Created!");
+                        break;
+                    case 2:
+                        System.out.print("Enter Account No: ");
+                        int dAcc = sc.nextInt();
+                        if (!accounts.containsKey(dAcc)) {
+                            System.out.println("Account not found!");
+                            break;
+                        }
+                        System.out.print("Enter Amount: ");
+                        double dAmt = sc.nextDouble();
+                        accounts.get(dAcc).deposit(dAmt);
+                        saveData();
+                        System.out.println("Deposited Successfully!");
+                        break;
+                    case 3:
+                        System.out.print("Enter Account No: ");
+                        int wAcc = sc.nextInt();
+                        if (!accounts.containsKey(wAcc)) {
+                            System.out.println("Account not found!");
+                            break;
+                        }
+                        System.out.print("Enter Amount: ");
+                        double wAmt = sc.nextDouble();
+                        accounts.get(wAcc).withdraw(wAmt);
+                        saveData();
+                        System.out.println("Withdrawn Successfully!");
+                        break;
+                    case 4:
+                        System.out.print("Enter Account No: ");
+                        int bAcc = sc.nextInt();
+                        if (!accounts.containsKey(bAcc)) {
+                            System.out.println("Account not found!");
+                            break;
+                        }
+                        accounts.get(bAcc).showDetails();
+                        break;
+                    case 5:
+                        System.out.print("Enter Account No: ");
+                        int hAcc = sc.nextInt();
+                        if (!accounts.containsKey(hAcc)) {
+                            System.out.println("Account not found!");
+                            break;
+                        }
+                        accounts.get(hAcc).showHistory();
+                        break;
+                    case 6:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+}
